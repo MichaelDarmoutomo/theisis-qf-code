@@ -71,4 +71,4 @@ DT = full_join(DT, Yields_DT, by='Date')
 
 # Remove unnessary variables
 rm(list=setdiff(ls(), "DT"))
-
+save(DT, file="../data/data.Rda")

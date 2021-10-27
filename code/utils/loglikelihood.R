@@ -8,6 +8,12 @@ LogLikelihood <- function(V,u) {
   #' @return loglikelihood
   
   return (- 0.5 * log(det(V)) - 0.5 * t(u) %*% chol2inv(V) %*% u)
+  
+  # loss = 0
+  # for (t in 1:T){
+  #   loss = loss + (- 0.5 * log(det(V[,,t])) - 0.5 * t(u[,t]) %*% chol2inv(V[,,t]) %*% u[,t])
+  # }
+  # return loss
 }
 
 
