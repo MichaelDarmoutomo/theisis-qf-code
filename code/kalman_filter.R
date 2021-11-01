@@ -15,6 +15,7 @@ loss <- function(param, y) {
   
   Q = param[(m+m*2+m+1):((m+m*2+m)+(k+2)*(k+2))]
   Q = matrix(Q, k+2, k+2)
+  Q = t(Q) %*% Q
   
   phi = param[((m+m*2+m)+(k+2)*(k+2)+1):((m+m*2+m)+(k+2)*(k+2)+(k+2))]
   
@@ -26,6 +27,7 @@ loss <- function(param, y) {
   
   # Computes total loglikelihood given a,B,H,Q,phi,Phi and y
   res = KalmanFilter(a, B, H, Q, phi, Phi, y) 
+  print((LogLikelihood(res$V, res$u)))
   -(LogLikelihood(res$V, res$u))
 }
 
@@ -34,14 +36,15 @@ kalman_optimizer <- function(y) {
   m = 60
   k = 2
   
-  a = rnorm(m)/100
-  B = rnorm(m*2)/100
-  H = runif(m, 0, 1)
-  Qtmp = matrix(rnorm((k+2)*(k+2)), k+2, k+2)
-  Q = as.vector(t(Qtmp) %*% Qtmp)
+  set.seed(123)
   
-  phi = rep(1, (k+2))/100
-  Phi = rep(1, (k+2)*(k+2))/100
+  a = runif(m, 0, 0.001)
+  B = runif(m*2, 0, 0.001)
+  H = runif(m, 0, 1)
+  Q = runif((k+2)*(k+2), 0, 1)
+  
+  phi = rep(0.01, (k+2)) # Lower bound = 0
+  Phi = rep(0.01, (k+2)*(k+2)) # Lower bound = 0
   
   # Initialize (m is # maturities)
   init_param = c(
@@ -54,12 +57,22 @@ kalman_optimizer <- function(y) {
   )
   
   # Run optimization (use some kind of optimizer)
-  # [a, B, H, Q, phi, Phi], loss = optimize(reward)
-  # param = optim(par=init_param, method="L-BFGS-B", fn=loss, y=y, control=list(trace=1))
-  param = nlminb(init_param, loss, y=y,control=list(trace=1))
+  param = optim(
+    par = init_param,
+    fn = loss,
+    method = "L-BFGS-B",
+    lower = rep(0, length(init_param)),
+    upper = rep(4, length(init_param)),
+    y = y,
+    control = list(trace=1)
+  )
   
+  
+  # param = nlminb(init_param, loss, y=y,control=list(trace=1))
+  
+  # loss(init_param, y)  
   
   # Smoother (?)
   
-  return (param)
+  param
 }

@@ -20,13 +20,13 @@ data$MSCI = log(data$MSCI)
 data$HICP = log(data$HICP)
 
 # Plot data
-ggplot(data, aes(x=Date)) + 
-  geom_line(aes(x=Date, y=MSCI)) +
-  ggtitle('MSCI Stock Index')
-
-ggplot(data, aes(x=Date)) + 
-  geom_line(aes(x=Date, y=HICP)) +
-  ggtitle('HICP') 
+# ggplot(data, aes(x=Date)) + 
+#   geom_line(aes(x=Date, y=MSCI)) +
+#   ggtitle('MSCI Stock Index')
+# 
+# ggplot(data, aes(x=Date)) + 
+#   geom_line(aes(x=Date, y=HICP)) +
+#   ggtitle('HICP') 
 
 
 #########################
