@@ -7,18 +7,11 @@ LogLikelihood <- function(V,u) {
   #'
   #' @return loglikelihood
   
-  return (- 0.5 * log(det(V)) - 0.5 * t(u) %*% chol2inv(V) %*% u)
-  
-  # loss = 0
-  # for (t in 1:T){
-  #   loss = loss + (- 0.5 * log(det(V[,,t])) - 0.5 * t(u[,t]) %*% chol2inv(V[,,t]) %*% u[,t])
-  # }
-  # return loss
+  loss = 0
+  T = dim(V)[3]
+  for (t in 1:T){
+    mV = as.matrix(V[,,t])
+    loss = loss + (- 0.5 * log(det(mV)) - 0.5 * t(u[,t]) %*% chol2inv(mV) %*% u[,t])
+  }
+  loss
 }
-
-
-# m = 60
-# u = rnorm(m+2)
-# V = matrix(runif((m+2)^2)*2-1, ncol=(m+2))
-# V = t(V) %*% V
-# LogLikelihood(V,u)
