@@ -55,7 +55,8 @@ kalman_optimizer <- function(y) {
   
   # Run optimization (use some kind of optimizer)
   # [a, B, H, Q, phi, Phi], loss = optimize(reward)
-  param = optim(par=init_param, fn=loss, y=y, control=list(trace=1))
+  # param = optim(par=init_param, method="L-BFGS-B", fn=loss, y=y, control=list(trace=1))
+  param = nlminb(init_param, loss, y=y,control=list(trace=1))
   
   
   # Smoother (?)
