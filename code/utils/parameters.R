@@ -1,15 +1,15 @@
 initialize_parameters <- function() {
   m = 60
   
-  delta_pi = c(0,0,0)
-  delta_r = c(0,0,0)
-  K = c(0,0,0)
+  delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
+  delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
+  K = runif(3, 0, 1) # c(0,0,0)
   sigma_pi = c(0,0,0)
-  sigma_s = c(0,0,0)
-  eta_s = 0
-  lambda = c(0,0)
-  Lambda = c(0,0,0,0)
-  h = rep(0,m)
+  sigma_s = c(0,0,0,0)
+  eta_s = rnorm(1, 0, 0.02)
+  lambda = rnorm(2, 0, 0.01) # c(0,0)
+  Lambda = rnorm(4, 0, 0.01) # c(0,0,0,0)
+  h = rep(0.1,m)
   
   c(delta_pi,
     delta_r,
@@ -22,66 +22,72 @@ initialize_parameters <- function() {
     h)
 }
 
-define_parameters <- function() {
-  library(expm)
+define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h_) {
   h = 1/12
   
   # (eq. 3.1 Pelsser (2019))
-  a = rbind(
+  a_ = rbind(
     rbind(0,0),
     delta_pi[1] - 0.5 * t(sigma_pi) %*% sigma_pi,
     delta_r[1] + eta_s - 0.5 * t(sigma_s) %*% sigma_s
   )
   
-  A = rbind(
+  A_ = rbind(
     -K, 
     delta_pi[2:3], 
     delta_r[2:3]
   )
   
-  C = rbind(
+  C_ = rbind(
     cbind(diag(2), matrix(0,2,2)),
     as.vector(sigma_pi),
     as.vector(sigma_s)
   )
   
-  r = eigen(C)
+  r = eigen(C_)
   U = r$vectors
   D = r$values
   Uinv = solve(U)
   alpha <- function(x) sapply(x, function(x) {if (x == 0) 1 else ((exp(x) - 1) / x)})
   F_ = diag(h * alpha(D * h))
   
-  phi = U %*% F_ %*% Uinv %*% a
-  Phi = expm(C * h)
+  phi = U %*% F_ %*% Uinv %*% a_
+  Phi = expm(C_ * h)
   
   # Create V matrix with loop
   V = matrix(0, 4, 4)
   for (i in 1:4) {
     for (j in 1:4) {
-      V[i,j] = (Uinv %*% C %*% t(C) %*% t(Uinv))[i,j] * h * alpha((D[i] + D[j]) * h)
+      V[i,j] = (Uinv %*% C_ %*% t(C_) %*% t(Uinv))[i,j] * h * alpha((D[i] + D[j]) * h)
     }
   }
   
   Q = U %*% V %*% t(U)
   
-  B <- function(tau) {
+  fB <- function(tau) {
     sapply(tau, function(tau) if (tau==0) 0 else solve(t(K) + t(Lambda)) %*% expm(-(t(K) + t(Lambda))*tau) %*% delta_r[2:3])
   }
   
-  Aprime <- function(tau) {
-    sapply(tau, function(tau)  if (tau==0) 0 else -t(B(tau)) %*% lambda + 0.5 * t(B(tau)) %*% B(tau) - delta_r[1])
+  fAprime <- function(tau) {
+    sapply(tau, function(tau)  if (tau==0) 0 else -t(fB(tau)) %*% lambda + 0.5 * t(fB(tau)) %*% fB(tau) - delta_r[1])
   }
   
   # Bprime <- function(tau) {
   #   - (t(K) + t(Lambda)) %*% B(tau) - delta_r[2:3]
   # } 
   
-  A <- function(tau) {
-    sapply(tau, function(tau) integrate(Aprime, 0, tau)$value)
+  fA <- function(tau) {
+    sapply(tau, function(tau) integrate(fAprime, 0, tau, rel.tol=.Machine$double.eps^0.20)$value)
   }
   
+  a = c(fA(1:60) / 1:60, 0, 0)
   
+  B = matrix(0, 62, 4)
+  B[1:60,1:2] = t(fB(1:60)) / 1:60
+  B[61:62, 3:4] = diag(2)
   
-  list(phi=phi, Phi=Phi, Q=Q)
+  H = matrix(0, 62, 62)
+  H[1:60, 1:60] = diag(h_)
+  
+  list(a=a, B=B, H=H, Q=Q, phi=phi, Phi=Phi)
 }

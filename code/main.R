@@ -2,13 +2,16 @@
 ## -- Load all dependencies -- ##
 #################################
 
+rm(list=ls())
 setwd("~/thesis-qf/code")
 
 source('optimizer.R')
 source('kalman.R')
 source('utils/loglikelihood.R')
+source('utils/parameters.R')
 
 library(ggplot2)
+library(expm)
 
 
 ######################

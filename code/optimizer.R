@@ -1,33 +1,26 @@
-loss <- function(param, y) {
+loss <- function(param, processed_param, y) {
   m = 60
   k = 2
   
-  # Prepare variables a, B, H, Q, phi, Phi (with restrictions)
-  a = rep(0, m+2)
-  a[1:m] = param[1:m]
-  
-  B = matrix(0, m+2, k+2)
-  B[(1:m),(1:k)] = matrix(param[(m+1):(m + m*2)], m, k)
-  B[(m+1):(m+2), 3:4] = diag(2)
-  
-  H = matrix(0, m+2, m+2)
-  H[1:m, 1:m] = diag(param[(m+m*2+1):(m+m*2+m)])
-  
-  Q = param[(m+m*2+m+1):((m+m*2+m)+(k+2)*(k+2))]
-  Q = matrix(Q, k+2, k+2)
-  Q = t(Q) %*% Q
-  
-  phi = param[((m+m*2+m)+(k+2)*(k+2)+1):((m+m*2+m)+(k+2)*(k+2)+(k+2))]
-  
-  Phi = param[((m+m*2+m)+(k+2)*(k+2)+(k+2)+1):((m+m*2+m)+(k+2)*(k+2)+(k+2)+(k+2)*(k+2))]
-  Phi = matrix(Phi, k+2, k+2)
+  delta_pi = param[1:3]
+  delta_r = param[4:6]
+  K = param[7:9]
+  K = matrix(c(K[1],K[2],0,K[3]), 2, 2)
+  sigma_pi = c(param[10:12], 0)
+  sigma_s = param[13:16]
+  eta_s = param[17]
+  lambda = param[18:19]
+  Lambda = param[20:23]
+  Lambda = matrix(lambda, 2, 2)
+  h = param[24:length(param)]
+
+  l = define_parameters(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h)
   
   y = as.matrix(t(y[,2:63]))
   names(y) = NULL
   
   # Computes total loglikelihood given a,B,H,Q,phi,Phi and y
-  res = KalmanFilter(a, B, H, Q, phi, Phi, y) 
-  # print((LogLikelihood(res$V, res$u)))
+  res = KalmanFilter(l$a, l$B, l$H, l$Q, l$phi, l$Phi, y) 
   -(LogLikelihood(res$V, res$u))
 }
 
@@ -37,44 +30,24 @@ kalman_optimizer <- function(y) {
   k = 2
   
   set.seed(123)
+  init_param <- initialize_parameters()
   
-  a = runif(m, 0, 0.001)
-  B = runif(m*2, 0, 0.001)
-  H = runif(m, 0, 1)
-  Q = runif((k+2)*(k+2), 0, 1)
-  
-  phi = rep(0.01, (k+2)) # Lower bound = 0
-  Phi = rep(0.01, (k+2)*(k+2)) # Lower bound = 0
-  
-  # Initialize (m is # maturities)
-  init_param = c(
-    a, # (m + 2)
-    B, # (m + 2) x (k + 2)
-    H, # (m + 2) x (m + 2)
-    Q, # (k + 2) x (k + 2)
-    phi, # (k + 2) x 1
-    Phi  # (k + 2) x (k + 2)
-  )
   
   # Run optimization
-  param = optim(
-    par = init_param,
-    fn = loss,
-    method = "L-BFGS-B",
-    lower = rep(0, length(init_param)),
-    upper = rep(1, length(init_param)),
-    y = y,
-    control = list(trace=0)
-  )
+  # opt_param = optim(
+  #   par = init_params,
+  #   fn = loss,
+  #   method = "L-BFGS-B",
+  #   # lower = rep(0, length(init_params)),
+  #   # upper = rep(1, length(init_params)),
+  #   y = y,
+  #   control = list(trace=0)
+  # )
+  # 
   
-  
-  # param = nlminb(init_param, loss, y=y,lower = rep(0, length(init_param)),control=list(trace=1))
-  
-  # loss(init_param, y)  
-  
-  # Smoother (?)
-  
-  param
+  param = nlminb(init_param, loss, y=y,lower = rep(0, length(init_param)),control=list(trace=1))
+
+  # param
 }
 
 
