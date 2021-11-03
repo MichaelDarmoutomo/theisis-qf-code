@@ -27,7 +27,7 @@ loss <- function(param, y) {
   
   # Computes total loglikelihood given a,B,H,Q,phi,Phi and y
   res = KalmanFilter(a, B, H, Q, phi, Phi, y) 
-  print((LogLikelihood(res$V, res$u)))
+  # print((LogLikelihood(res$V, res$u)))
   -(LogLikelihood(res$V, res$u))
 }
 
@@ -56,19 +56,19 @@ kalman_optimizer <- function(y) {
     Phi  # (k + 2) x (k + 2)
   )
   
-  # Run optimization (use some kind of optimizer)
+  # Run optimization
   param = optim(
     par = init_param,
     fn = loss,
     method = "L-BFGS-B",
     lower = rep(0, length(init_param)),
-    upper = rep(4, length(init_param)),
+    upper = rep(1, length(init_param)),
     y = y,
-    control = list(trace=1)
+    control = list(trace=0)
   )
   
   
-  # param = nlminb(init_param, loss, y=y,control=list(trace=1))
+  # param = nlminb(init_param, loss, y=y,lower = rep(0, length(init_param)),control=list(trace=1))
   
   # loss(init_param, y)  
   
@@ -76,3 +76,5 @@ kalman_optimizer <- function(y) {
   
   param
 }
+
+

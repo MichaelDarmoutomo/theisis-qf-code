@@ -1,0 +1,8 @@
+delta_pi = rnorm(3)
+delta_r = rnorm(3)
+K = matrix(rnorm(4), 2, 2)
+sigma_pi = rnorm(4)
+sigma_s = rnorm(4)
+eta_s = rnorm(1)
+lambda = rnorm(2)
+Lambda = matrix(rnorm(4),2,2)

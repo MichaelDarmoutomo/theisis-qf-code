@@ -28,7 +28,7 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
     # Variables needed
     V[,,t] = B %*% Phat[,,t] %*% t(B) + H
     u[,t] = y[,t] - (a + B %*% Xhat[,t])
-    K[,,t] = Phat[,,t] %*% t(B) %*% chol2inv(V[,,t])
+    K[,,t] = Phat[,,t] %*% t(B) %*% solve(V[,,t])
     
     # State update
     X[,t] = Xhat[,t] + K[,,t] %*% u[,t]

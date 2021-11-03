@@ -2,9 +2,12 @@
 ## -- Load all dependencies -- ##
 #################################
 
-source('kalman_filter.R')
+setwd("~/thesis-qf/code")
+
+source('optimizer.R')
 source('kalman.R')
 source('utils/loglikelihood.R')
+
 library(ggplot2)
 
 
