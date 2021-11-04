@@ -1,4 +1,4 @@
-loss <- function(param, processed_param, y) {
+loss <- function(param, y) {
   m = 60
   k = 2
   
@@ -16,9 +16,6 @@ loss <- function(param, processed_param, y) {
 
   l = define_parameters(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h)
   
-  y = as.matrix(t(y[,2:63]))
-  names(y) = NULL
-  
   # Computes total loglikelihood given a,B,H,Q,phi,Phi and y
   res = KalmanFilter(l$a, l$B, l$H, l$Q, l$phi, l$Phi, y) 
   -(LogLikelihood(res$V, res$u))
@@ -33,20 +30,20 @@ kalman_optimizer <- function(y) {
   init_param <- initialize_parameters()
   
   
-  # Run optimization
+  # # Run optimization
   # opt_param = optim(
-  #   par = init_params,
+  #   par = init_param,
   #   fn = loss,
-  #   method = "L-BFGS-B",
-  #   # lower = rep(0, length(init_params)),
-  #   # upper = rep(1, length(init_params)),
+  #   method = "BFGS",
+  #   # method = "CG",
   #   y = y,
-  #   control = list(trace=0)
+  #   control = list(trace=1)
   # )
-  # 
-  
-  param = nlminb(init_param, loss, y=y,lower = rep(0, length(init_param)),control=list(trace=1))
 
+  
+  # loss(init_param, y)
+  param = nlminb(init_param, loss, y=y, control=list(trace=1))
+  # param = nlm(loss,init_param, y=y,steptol=1e-4,gradtol=1e-4, print.level=2)
   # param
 }
 

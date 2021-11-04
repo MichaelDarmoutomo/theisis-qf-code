@@ -1,15 +1,24 @@
 initialize_parameters <- function() {
   m = 60
   
-  delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
-  delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
-  K = runif(3, 0, 1) # c(0,0,0)
-  sigma_pi = rnorm(3, 0, 0.2) # c(0,0,0)
-  sigma_s = rnorm(4, 0, 0.2) #c(0,0,0,0)
-  eta_s = rnorm(1, 0, 0.02)
-  lambda = rnorm(2, 0, 0.01) # c(0,0)
-  Lambda = rnorm(4, 0, 0.01) # c(0,0,0,0)
-  h = rep(0.1,m)
+  # delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
+  # delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
+  # K = runif(3, 0, 1) # c(0,0,0)
+  # sigma_pi = rnorm(3, 0, 0.2) # c(0,0,0)
+  # sigma_s = rnorm(4, 0, 0.2) #c(0,0,0,0)
+  # eta_s = rnorm(1, 0, 0.2)
+  # lambda = rnorm(2, 0, 0.1) # c(0,0)
+  # Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
+  # h = rep(0.1,m)
+  delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
+  delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
+  K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
+  sigma_pi = c(-0.0010, 0.0013, 0.0055) #rnorm(3, 0, 0.2) # c(0,0,0)
+  sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335) #rnorm(4, 0, 0.2) #c(0,0,0,0)
+  eta_s = 0.0451 #rnorm(1, 0, 0.2)
+  lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
+  Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
+  h = rep(0.0005,m)
   
   c(delta_pi,
     delta_r,
@@ -65,7 +74,7 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   Q = U %*% V %*% t(U)
   
   fB <- function(tau) {
-    sapply(tau, function(tau) if (tau==0) 0 else solve(t(K) + t(Lambda)) %*% expm(-(t(K) + t(Lambda))*tau) %*% delta_r[2:3])
+    sapply(tau, function(tau) if (tau==0) 0 else solve(t(K) + t(Lambda)) %*% (expm(-(t(K) + t(Lambda))*tau) - diag(2)) %*% delta_r[2:3])
   }
   
   fAprime <- function(tau) {
@@ -77,10 +86,12 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   # } 
   
   fA <- function(tau) {
-    sapply(tau, function(tau) integrate(fAprime, 0, tau, rel.tol=.Machine$double.eps^0.20)$value)
+    p = sapply(seq(length(tau)-1), function(k) integrate(fAprime, tau[k], tau[k+1])$value)
+    cumsum(p)
   }
   
-  a = c(fA(1:60) / 1:60, 0, 0)
+  
+  a = c(fA(0:60) / 1:60, 0, 0)
   
   B = matrix(0, 62, 4)
   B[1:60,1:2] = t(fB(1:60)) / 1:60

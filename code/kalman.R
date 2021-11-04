@@ -16,8 +16,8 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
     
     # % Prediction for t == 1
     if (t == 1) {
-      Xhat[,1] = X0
-      Phat[,,1] = P0
+      Xhat[,t] = X0
+      Phat[,,t] = P0
     } 
     else {
       # % Prediction step for any other t
@@ -28,13 +28,13 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
     # Variables needed
     V[,,t] = B %*% Phat[,,t] %*% t(B) + H
     u[,t] = y[,t] - (a + B %*% Xhat[,t])
-    K[,,t] = Phat[,,t] %*% t(B) %*% solve(V[,,t])
+    K[,,t] = Phat[,,t] %*% t(B) %*% solve(V[,,t], tol = 1e-99)
     
     # State update
     X[,t] = Xhat[,t] + K[,,t] %*% u[,t]
     
     # P update
-    P[,,t] = (diag(4) - K[,,t] %*% B) %*% Phat[,,t]
+    P[,,t] = (diag(4) - (K[,,t] %*% B)) %*% Phat[,,t]
   }
   return (list(V=V, u=u))
 }
