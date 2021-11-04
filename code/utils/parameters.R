@@ -1,5 +1,5 @@
 initialize_parameters <- function() {
-  m = 60
+  m = 6
   
   # delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
   # delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
@@ -31,7 +31,7 @@ initialize_parameters <- function() {
     h)
 }
 
-define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h_) {
+define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h_, m) {
   h = 1/12
   
   # (eq. 3.1 Pelsser (2019))
@@ -91,14 +91,14 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   }
   
   
-  a = c(fA(0:60) / 1:60, 0, 0)
+  a = c(fA(0:m) / 1:m, 0, 0)
   
-  B = matrix(0, 62, 4)
-  B[1:60,1:2] = t(fB(1:60)) / 1:60
-  B[61:62, 3:4] = diag(2)
+  B = matrix(0, m+2, 4)
+  B[1:m,1:2] = t(fB(1:m)) / 1:m
+  B[(m+1):(m+2), 3:4] = diag(2)
   
-  H = matrix(0, 62, 62)
-  H[1:60, 1:60] = diag(h_)
+  H = matrix(0, m+2, m+2)
+  H[1:m, 1:m] = diag(h_)
   
   list(a=a, B=B, H=H, Q=Q, phi=phi, Phi=Phi)
 }

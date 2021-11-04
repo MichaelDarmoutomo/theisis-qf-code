@@ -20,12 +20,14 @@ library(expm)
 load('../data/data.Rda')
 
 # Get subset of data that is available
-data = DT[409:622,1:63]
+data = DT[409:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
 data$MSCI = log(data$MSCI)
 data$HICP = log(data$HICP)
-data[,4:63] = data[,4:63]/100
+data[,1:6] = data[,1:6]/100
 
-data = t(as.matrix(cbind(data[,4:63], data[,2:3])))
+data = t(as.matrix(data))
+row.names(data) <- NULL
+
 # Plot data
 # ggplot(data, aes(x=Date)) + 
 #   geom_line(aes(x=Date, y=MSCI)) +
