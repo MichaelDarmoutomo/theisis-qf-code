@@ -2,6 +2,7 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
   # Set prior
   T = dim(y)[-1]
   X0 = matrix(0, 4, 1)
+  # X0 = matrix(c(0,0,4.404399, 6.943429), 4, 1)
   P0 = diag(4)
   
   # Define empty arrays and matrices
@@ -27,6 +28,7 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
     
     # Variables needed
     V[,,t] = B %*% Phat[,,t] %*% t(B) + H
+    
     u[,t] = y[,t] - (a + B %*% Xhat[,t])
     K[,,t] = Phat[,,t] %*% t(B) %*% solve(V[,,t])
     

@@ -6,3 +6,15 @@ sigma_s = rnorm(4)
 eta_s = rnorm(1)
 lambda = rnorm(2)
 Lambda = matrix(rnorm(4),2,2)
+
+delta_pi_hat = param[1:3]
+delta_r_hat = param[4:6]
+K_hat = param[7:9]
+K_hat = matrix(c(K_hat[1],K_hat[2],0,K_hat[3]), 2, 2)
+sigma_pi_hat = c(param[10:12], 0)
+sigma_s_hat = param[13:16]
+eta_s_hat = param[17]
+lambda_hat = param[18:19]
+Lambda_hat = param[20:23]
+Lambda_hat = matrix(Lambda_hat, 2, 2)
+h_hat = param[24:length(param)]

@@ -11,7 +11,19 @@ LogLikelihood <- function(V,u) {
   T = dim(V)[3]
   for (t in 3:T){
     mV = as.matrix(V[,,t])
-    newloss = (- 0.5 * log(det(mV)) - 0.5 * t(u[,t]) %*% solve(mV) %*% u[,t])
+    tryCatch({
+      newloss = (- 0.5 * log(det(mV)) - 0.5 * t(u[,t]) %*% chol2inv(mV) %*% u[,t])
+    },
+    error=function(cond) {
+      message(paste("Found an error:", cond))
+      Sys.sleep(5)
+      return(NA)
+    },
+    warning=function(cond) {
+      message(paste("Found a warning:", cond))
+      Sys.sleep(5)
+      return(NA)
+    })
     loss = loss + newloss
   }
   loss

@@ -1,5 +1,5 @@
 loss <- function(param, y) {
-  m = dim(data)[1]-2
+  m = dim(y)[1]-2
   
   delta_pi = param[1:3]
   delta_r = param[4:6]
@@ -11,7 +11,7 @@ loss <- function(param, y) {
   lambda = param[18:19]
   Lambda = param[20:23]
   Lambda = matrix(lambda, 2, 2)
-  h = param[24:length(param)]
+  h = param[24:length(param)]**2
 
   l = define_parameters(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h, m)
   
@@ -25,19 +25,22 @@ kalman_optimizer <- function(y) {
   set.seed(123)
   init_param <- initialize_parameters()
   
+  lb = rep(-Inf, length(init_param))
+  lb[1] = 0
+  lb[4] = 0
+  # lb[24:length(init_param)] = 0
   
-  # # Run optimization
+  # Run optimization
   # opt_param = optim(
   #   par = init_param,
   #   fn = loss,
-  #   method = "BFGS",
-  #   # method = "CG",
+  #   method = "L-BFGS-B",
+  #   lower= lb,
   #   y = y,
   #   control = list(trace=1)
   # )
 
-  # loss(init_param, y)
-  param = nlminb(init_param, loss, y=y, control=list(trace=1))
+  param = nlminb(init_param, loss, y=y, lower=lb,control=list(trace=1))
   # param = nlm(loss,init_param, y=y,steptol=1e-4,gradtol=1e-4, print.level=2)
   # param
 }
