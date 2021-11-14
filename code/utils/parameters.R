@@ -1,24 +1,24 @@
 initialize_parameters <- function() {
   m = 6
-  
-  delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
-  delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
-  K = runif(3, 0, 1) # c(0,0,0)
-  sigma_pi = rnorm(3, 0, 0.2) # c(0,0,0)
-  sigma_s = rnorm(4, 0, 0.2) #c(0,0,0,0)
-  eta_s = rnorm(1, 0, 0.2)
-  lambda = rnorm(2, 0, 0.1) # c(0,0)
-  Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
-  h = rep(0.1,m)
-  # delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
-  # delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
-  # K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
-  # sigma_pi = c(-0.0010, 0.0013, 0.0055) #rnorm(3, 0, 0.2) # c(0,0,0)
-  # sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335) #rnorm(4, 0, 0.2) #c(0,0,0,0)
-  # eta_s = 0.0451 #rnorm(1, 0, 0.2)
-  # lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
-  # Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
-  # h = rep(0.0005,m)
+  # 
+  # delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
+  # delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
+  # K = runif(3, 0, 1) # c(0,0,0)
+  # sigma_pi = rnorm(3, 0, 0.2) # c(0,0,0)
+  # sigma_s = rnorm(4, 0, 0.2) #c(0,0,0,0)
+  # eta_s = rnorm(1, 0, 0.2)
+  # lambda = rnorm(2, 0, 0.1) # c(0,0)
+  # Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
+  # h = rep(0.1,m)
+  delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
+  delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
+  K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
+  sigma_pi = c(-0.0010, 0.0013, 0.0055) #rnorm(3, 0, 0.2) # c(0,0,0)
+  sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335) #rnorm(4, 0, 0.2) #c(0,0,0,0)
+  eta_s = 0.0451 #rnorm(1, 0, 0.2)
+  lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
+  Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
+  h = rep(0.0005,m)
   
   c(delta_pi,
     delta_r,
@@ -41,10 +41,13 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
     delta_r[1] + eta_s - 0.5 * t(sigma_s) %*% sigma_s
   )
   
-  A_ = rbind(
+  A_ = cbind(
+    rbind(
     -K, 
     delta_pi[2:3], 
     delta_r[2:3]
+    ),
+    matrix(0, nrow=4, ncol=2)
   )
   
   C_ = rbind(
@@ -53,7 +56,7 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
     as.vector(sigma_s)
   )
   
-  r = eigen(C_)
+  r = eigen(A_)
   U = r$vectors
   D = r$values
   Uinv = solve(U)
@@ -61,7 +64,7 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   F_ = diag(h * alpha(D * h))
   
   phi = U %*% F_ %*% Uinv %*% a_
-  Phi = expm(C_ * h)
+  Phi = expm(A_ * h)
   
   # Create V matrix with loop
   V = matrix(0, 4, 4)

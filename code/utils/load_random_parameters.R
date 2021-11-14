@@ -7,6 +7,7 @@ eta_s = rnorm(1)
 lambda = rnorm(2)
 Lambda = matrix(rnorm(4),2,2)
 
+param = res$par
 delta_pi_hat = param[1:3]
 delta_r_hat = param[4:6]
 K_hat = param[7:9]
