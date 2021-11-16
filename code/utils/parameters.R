@@ -1,24 +1,24 @@
 initialize_parameters <- function() {
   m = 6
-  # 
-  # delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
-  # delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
-  # K = runif(3, 0, 1) # c(0,0,0)
-  # sigma_pi = rnorm(3, 0, 0.2) # c(0,0,0)
-  # sigma_s = rnorm(4, 0, 0.2) #c(0,0,0,0)
-  # eta_s = rnorm(1, 0, 0.2)
-  # lambda = rnorm(2, 0, 0.1) # c(0,0)
-  # Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
-  # h = rep(0.1,m)
-  delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
-  delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
-  K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
-  sigma_pi = c(-0.0010, 0.0013, 0.0055) #rnorm(3, 0, 0.2) # c(0,0,0)
-  sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335) #rnorm(4, 0, 0.2) #c(0,0,0,0)
-  eta_s = 0.0451 #rnorm(1, 0, 0.2)
-  lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
-  Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
-  h = rep(0.0005,m)
+
+  delta_pi = rnorm(3, 0 , 0.1) # c(0,0,0)
+  delta_r = rnorm(3, 0 , 0.1) # c(0,0,0)
+  K = runif(3, 0, 1) # c(0,0,0)
+  sigma_pi = rnorm(3, 0, 0.2) # c(0,0,0)
+  sigma_s = rnorm(4, 0, 0.2) #c(0,0,0,0)
+  eta_s = rnorm(1, 0, 0.2)
+  lambda = rnorm(2, 0, 0.1) # c(0,0)
+  Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
+  h = rep(0.1,m)
+  # delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
+  # delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
+  # K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
+  # sigma_pi = c(-0.0010, 0.0013, 0.0055) #rnorm(3, 0, 0.2) # c(0,0,0)
+  # sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335) #rnorm(4, 0, 0.2) #c(0,0,0,0)
+  # eta_s = 0.0451 #rnorm(1, 0, 0.2)
+  # lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
+  # Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
+  # h = c(0.0038, 0.0003, 0.0003, 0.0000, 0.0008, 0.0021)
   
   c(delta_pi,
     delta_r,
@@ -77,7 +77,7 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   Q = U %*% V %*% t(U)
   
   fB <- function(tau) {
-    sapply(tau, function(tau) if (tau==0) 0 else chol2inv(t(K) + t(Lambda)) %*% (expm(-tau * (t(K) + t(Lambda))) - diag(2)) %*% delta_r[2:3])
+    sapply(tau, function(tau) if (tau==0) 0 else chol2inv(t(K + Lambda)) %*% (expm(-tau * (t(K) + t(Lambda))) - diag(2)) %*% delta_r[2:3])
   }
   
   fAprime <- function(tau) {
@@ -93,14 +93,13 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
     cumsum(p)
   }
   
-  a = c(fA(0:m) / 1:m, 0, 0)
+  a = c(-fA(0:m) / 1:m, 0, 0)
   
   B = matrix(0, m+2, 4)
-  B[1:m,1:2] = t(fB(1:m)) / 1:m
+  B[1:m,1:2] = t(-fB(1:m)) / 1:m
   B[(m+1):(m+2), 3:4] = diag(2)
   
   H = matrix(0, m+2, m+2)
   H[1:m, 1:m] = diag(h_)
-  rm(V)
   list(a=a, B=B, H=H, Q=Q, phi=phi, Phi=Phi)
 }

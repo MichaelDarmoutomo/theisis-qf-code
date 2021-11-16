@@ -2,7 +2,7 @@
 ## -- Load all dependencies -- ##
 #################################
 
-rm(ls())
+rm(list=ls())
 if (!grep('code', getwd())) {
   setwd("~/thesis-qf/code")
 }
@@ -25,7 +25,7 @@ library(expm)
 load('../data/data.Rda')
 
 # Get subset of data that is available
-data = DT[409:622, c('Date','X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
+data = DT[410:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
 data$MSCI = log(data$MSCI)
 data$HICP = log(data$HICP)
 data[,1:6] = data[,1:6]/100
@@ -33,14 +33,16 @@ data[,1:6] = data[,1:6]/100
 data = t(as.matrix(data))
 row.names(data) <- NULL
 
-# Plot data
-ggplot(data, aes(x=Date)) +
+ggplot(subset(DT, as.numeric(format.Date(DT$Date, "%Y")) > 2000), aes(x=Date)) +
   geom_line(aes(x=Date, y=MSCI)) +
   ggtitle('MSCI Stock Index')
 
-ggplot(data, aes(x=Date)) +
+ggplot(DT, aes(x=Date)) +
   geom_line(aes(x=Date, y=HICP)) +
   ggtitle('HICP')
+
+# Plot data
+
 
 
 #########################

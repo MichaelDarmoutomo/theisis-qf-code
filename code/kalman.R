@@ -1,8 +1,8 @@
 KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
   # Set prior
   T = dim(y)[-1]
-  X0 = matrix(0, 4, 1)
-  # X0 = matrix(c(0,0,4.404399, 6.943429), 4, 1)
+  # X0 = matrix(0, 4, 1)
+  X0 = matrix(c(0,0,4.404399, 6.943429), 4, 1)
   P0 = diag(4)
   
   # Define empty arrays and matrices
