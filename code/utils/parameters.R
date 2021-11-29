@@ -9,7 +9,7 @@ initialize_parameters <- function() {
   eta_s = rnorm(1, 0, 0.2)
   lambda = rnorm(2, 0, 0.1) # c(0,0)
   Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
-  h = rep(0.1,m)
+  h = rep(0.01,m)
   # delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
   # delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
   # K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
@@ -19,7 +19,7 @@ initialize_parameters <- function() {
   # lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
   # Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
   # h = c(0.0038, 0.0003, 0.0003, 0.0000, 0.0008, 0.0021)
-  
+
   c(delta_pi,
     delta_r,
     K,
@@ -77,7 +77,7 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   Q = U %*% V %*% t(U)
   
   fB <- function(tau) {
-    sapply(tau, function(tau) if (tau==0) 0 else chol2inv(t(K + Lambda)) %*% (expm(-tau * (t(K) + t(Lambda))) - diag(2)) %*% delta_r[2:3])
+    sapply(tau, function(tau) if (tau==0) 0 else solve(t(K + Lambda)) %*% (expm(-tau * (t(K) + t(Lambda))) - diag(2)) %*% delta_r[2:3])
   }
   
   fAprime <- function(tau) {
@@ -88,17 +88,25 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   #   - (t(K) + t(Lambda)) %*% B(tau) - delta_r[2:3]
   # } 
   
+  # fA <- function(tau) {
+  #   p = sapply(seq(length(tau)-1), function(k) integrate(fAprime, tau[k], tau[k+1], rel.tol=.Machine$double.eps^0.18)$value)
+  #   cumsum(p)
+  # }
+  
   fA <- function(tau) {
-    p = sapply(seq(length(tau)-1), function(k) integrate(fAprime, tau[k], tau[k+1], rel.tol=.Machine$double.eps^0.18)$value)
-    cumsum(p)
+    sapply(tau, function(tau) integrate(fAprime, 0, tau)$value)
   }
   
-  a = c(-fA(0:m) / 1:m, 0, 0)
+  # m_ = 30
+  # a_temp = (-fA(0:m_) / 1:m_)[c(1,5,10,15,20,30)]
+  a_temp = fA(c(1,5,10,15,20,30)) / c(1,5,10,15,20,30)
+  a = c(a_temp, 0, 0)
   
   B = matrix(0, m+2, 4)
-  B[1:m,1:2] = t(-fB(1:m)) / 1:m
+  B_temp = t(fB(c(1,5,10,15,20,30))) / c(1,5,10,15,20,30)
+  B[1:m,1:2] = B_temp
   B[(m+1):(m+2), 3:4] = diag(2)
-  
+
   H = matrix(0, m+2, m+2)
   H[1:m, 1:m] = diag(h_)
   list(a=a, B=B, H=H, Q=Q, phi=phi, Phi=Phi)

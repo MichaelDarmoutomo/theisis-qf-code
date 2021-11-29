@@ -11,7 +11,7 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
   V = array(0, c(dim(H),T))
   u = array(0, dim(y))
   K = array(0, c(dim(t(B)),T))
-  
+
   # Kalman filter
   for (t in 1:T) {
     
@@ -28,14 +28,15 @@ KalmanFilter <- function(a, B, H, Q, phi, Phi, y) {
     
     # Variables needed
     V[,,t] = B %*% Phat[,,t] %*% t(B) + H
-    
+
     u[,t] = y[,t] - (a + B %*% Xhat[,t])
-    K[,,t] = Phat[,,t] %*% t(B) %*% solve(V[,,t])
+    K[,,t] = Phat[,,t] %*% t(B) %*% solve(V[,,t], tol = .Machine$double.eps^5)
     
     # State update
     X[,t] = Xhat[,t] + K[,,t] %*% u[,t]
     
     # P update
+    # P[,,t] = Phat[,,t] - (Phat[,,t] %*% t(B) %*% solve(V[,,t]) %*% B %*% Phat[,,t])
     P[,,t] = (diag(4) - (K[,,t] %*% B)) %*% Phat[,,t]
   }
   return (list(V=V, u=u))

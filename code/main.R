@@ -22,27 +22,36 @@ library(expm)
 ## -- Load data --  ##
 ######################
 
-load('../data/data.Rda')
+# load('../data/data.Rda')
+# 
+# # Get subset of data that is available
+# data = DT[410:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
+# data$HICP = log(data$HICP)
+# data$MSCI = log(data$MSCI)
+# data[,1:6] = data[,1:6]/100
 
-# Get subset of data that is available
-data = DT[410:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
-data$MSCI = log(data$MSCI)
-data$HICP = log(data$HICP)
-data[,1:6] = data[,1:6]/100
+economic_data_long <- read_excel("C:/Users/Michael.DESKTOP-575L4M7/Downloads/economic_data_long.xlsx", 
+  col_types = c("date", "numeric", "numeric", 
+  "numeric", "numeric", "numeric", 
+  "numeric", "numeric", "numeric", 
+  "skip"))
+
+
+data = economic_data_long[325:579, 2:9]
 
 data = t(as.matrix(data))
 row.names(data) <- NULL
-
-ggplot(subset(DT, as.numeric(format.Date(DT$Date, "%Y")) > 2000), aes(x=Date)) +
-  geom_line(aes(x=Date, y=MSCI)) +
-  ggtitle('MSCI Stock Index')
-
-ggplot(DT, aes(x=Date)) +
-  geom_line(aes(x=Date, y=HICP)) +
-  ggtitle('HICP')
+data[7,] = data[7,] - data[7,1]
+data[8,] = data[8,] - data[8,1]
 
 # Plot data
-
+# ggplot(subset(DT, as.numeric(format.Date(DT$Date, "%Y")) > 2000), aes(x=Date)) +
+#   geom_line(aes(x=Date, y=MSCI)) +
+#   ggtitle('MSCI Stock Index')
+# 
+# ggplot(DT, aes(x=Date)) +
+#   geom_line(aes(x=Date, y=HICP)) +
+#   ggtitle('HICP')
 
 
 #########################
@@ -50,3 +59,6 @@ ggplot(DT, aes(x=Date)) +
 #########################
 
 res = kalman_optimizer(data)
+
+param = res$par
+save(param, file="results/Parameters.Rdata")

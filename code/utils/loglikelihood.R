@@ -21,8 +21,7 @@ LogLikelihood <- function(V,u) {
     },
     warning=function(cond) {
       message(paste("Found a warning:", cond))
-      Sys.sleep(5)
-      return(NA)
+      print(mV)
     })
     loss = loss + newloss
   }
