@@ -2,6 +2,8 @@
 rm(list=ls())
 load('results/Parameters.Rdata')
 
+library(abind)
+
 # Define parameters
 delta_pi = param[1:3]
 delta_r = param[4:6]
@@ -13,7 +15,7 @@ eta_s = param[17]
 lambda_ = param[18:19]
 lambda = c(lambda_, 0, t(-sigma_s[1:2]) %*% lambda_[1:2] / sigma_s[4])
 Lambda_ = param[20:23]
-Lambda_ = matrix(Lambda_, 2, 2)
+Lambda_ = matrix(Lambda_, 2, 2, byrow=TRUE)
 Lambda = rbind(
   Lambda_, 
   c(0,0))
@@ -58,20 +60,26 @@ for (t in 1:T) {
 
 # Bond prices
 fB <- function(tau) {
-  sapply(tau, function(tau) if (tau==0) 0 else chol2inv(t(K + Lambda_)) %*% (expm(-tau * (t(K) + t(Lambda_))) - diag(2)) %*% delta_r[2:3])
+  sapply(tau, function(tau) if (tau==0) 0 else solve(t(K + Lambda_)) %*% (expm(-tau * (t(K) + t(Lambda_))) - diag(2)) %*% delta_r[2:3])
 }
 
 fAprime <- function(tau) {
   sapply(tau, function(tau)  if (tau==0) 0 else -t(fB(tau)) %*% lambda_ + 0.5 * t(fB(tau)) %*% fB(tau) - delta_r[1])
 }
 
-Bprime <- function(tau) {
-  - (t(K) + t(Lambda_)) %*% B(tau) - delta_r[2:3]
-}
 
 fA <- function(tau) {
-  p = sapply(seq(length(tau)-1), function(k) integrate(fAprime, tau[k], tau[k+1], rel.tol=.Machine$double.eps^0.18)$value)
-  cumsum(p)
+  sapply(tau, function(tau) integrate(fAprime, 0, tau)$value)
 }
 
-# exp(fA(0:6) + fB(1) * X[,,,])
+
+y = array(0, c(6, nSim, T+1))
+for (t in 1:(T+1)) {
+  y[,,t] = (-fA(c(1,5,10,15,20,30)) / c(1,5,10,15,20,30)) + (t(-fB(c(1,5,10,15,20,30))) / c(1,5,10,15,20,30)) %*% X[,,t]
+}
+
+sim_data = abind(y,
+                 array(log(Pi), c(1,100,214)),
+                 array(log(S), c(1,100,214)), along=1)
+
+save(sim_data, file="results/Simulated_data.Rdata")

@@ -34,13 +34,13 @@ kalman_optimizer <- function(y) {
   opt_param = optim(
     par = init_param,
     fn = loss,
-    method = "L-BFGS-B",
-    lower= lb,
+    # method = "SANN",
+    # lower= lb,
     y = y,
-    control = list(trace=1)
+    control = list(trace=1, maxit=10000)
   )
 
-  # param = nlminb(init_param, loss, y=y, lower=lb,control=list(trace=1))
+  # param = nlminb(init_param, loss, y=y, lower=lb,control=list(trace=1, iter.max=1000, eval.max=1000))
   # param = nlm(loss,init_param, y=y,steptol=1e-4,gradtol=1e-4, print.level=2)
   # param
 }

@@ -17,12 +17,13 @@ if("expm" %in% rownames(installed.packages()) == FALSE) {install.packages("expm"
 
 library(ggplot2)
 library(expm)
+library(readxl)
 
 ######################
 ## -- Load data --  ##
 ######################
 
-# load('../data/data.Rda')
+load('../data/data.Rda')
 # 
 # # Get subset of data that is available
 # data = DT[410:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
@@ -30,10 +31,10 @@ library(expm)
 # data$MSCI = log(data$MSCI)
 # data[,1:6] = data[,1:6]/100
 
-economic_data_long <- read_excel("C:/Users/Michael.DESKTOP-575L4M7/Downloads/economic_data_long.xlsx", 
-  col_types = c("date", "numeric", "numeric", 
-  "numeric", "numeric", "numeric", 
-  "numeric", "numeric", "numeric", 
+economic_data_long <- read_excel("C:/Users/Michael.DESKTOP-575L4M7/Downloads/economic_data_long.xlsx",
+  col_types = c("date", "numeric", "numeric",
+  "numeric", "numeric", "numeric",
+  "numeric", "numeric", "numeric",
   "skip"))
 
 
@@ -44,15 +45,6 @@ row.names(data) <- NULL
 data[7,] = data[7,] - data[7,1]
 data[8,] = data[8,] - data[8,1]
 
-# Plot data
-# ggplot(subset(DT, as.numeric(format.Date(DT$Date, "%Y")) > 2000), aes(x=Date)) +
-#   geom_line(aes(x=Date, y=MSCI)) +
-#   ggtitle('MSCI Stock Index')
-# 
-# ggplot(DT, aes(x=Date)) +
-#   geom_line(aes(x=Date, y=HICP)) +
-#   ggtitle('HICP')
-
 
 #########################
 ## -- Kalman filter -- ##
@@ -61,4 +53,4 @@ data[8,] = data[8,] - data[8,1]
 res = kalman_optimizer(data)
 
 param = res$par
-save(param, file="results/Parameters.Rdata")
+# save(param, file="results/Parameters.Rdata")

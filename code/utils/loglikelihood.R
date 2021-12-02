@@ -9,10 +9,10 @@ LogLikelihood <- function(V,u) {
   
   loss = 0
   T = dim(V)[3]
-  for (t in 3:T){
+  for (t in 1:T){
     mV = as.matrix(V[,,t])
     tryCatch({
-      newloss = (- 0.5 * log(det(mV)) - 0.5 * t(u[,t]) %*% chol2inv(mV) %*% u[,t])
+      newloss = (- 0.5 * log(det(mV)) - 0.5 * t(u[,t]) %*% solve(mV) %*% u[,t])
     },
     error=function(cond) {
       message(paste("Found an error:", cond))
