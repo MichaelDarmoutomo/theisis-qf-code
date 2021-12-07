@@ -9,15 +9,26 @@ initialize_parameters <- function() {
   # eta_s = rnorm(1, 0, 0.2)
   # lambda = rnorm(2, 0, 0.1) # c(0,0)
   # Lambda = rnorm(4, 0, 0.1) # c(0,0,0,0)
+  # h = rep(0.001,m)
+  
+  # delta_pi = c(0.02,-0.001, -0.001)
+  # delta_r =  c(0.01, -0.001, -0.002)
+  # K = c(0.5, 0.5, 0.2)
+  # sigma_pi = c(0.1,0.1,0.1)
+  # sigma_s = c(0.1,0.1,0.1,0.1)
+  # eta_s = 0.05
+  # lambda =  c(0.5,0.1)
+  # Lambda =  c(0.2,0.4,-0.5,-1)
   # h = rep(0.01,m)
-  delta_pi = c(0.0158, -0.0028, -0.0014) #rnorm(3, 0 , 0.1) # c(0,0,0)
-  delta_r = c(0.0097, -0.0094, -0.0024) #rnorm(3, 0 , 0.1) # c(0,0,0)
-  K = c(0.0479, 0.5440, 1.2085) #runif(3, 0, 1) # c(0,0,0)
-  sigma_pi = c(-0.0010, 0.0013, 0.0055) #rnorm(3, 0, 0.2) # c(0,0,0)
-  sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335) #rnorm(4, 0, 0.2) #c(0,0,0,0)
-  eta_s = 0.0451 #rnorm(1, 0, 0.2)
-  lambda = c(0.6420, -0.0240) # rnorm(2, 0, 0.1) # c(0,0)
-  Lambda = c(0.1710, 0.3980, -0.5140, -1.1470) #rnorm(4, 0, 0.1) # c(0,0,0,0)
+  
+  delta_pi = c(0.0158, -0.0028, -0.0014)
+  delta_r = c(0.0097, -0.0094, -0.0024)
+  K = c(0.0479, 0.5440, 1.2085)
+  sigma_pi = c(-0.0010, 0.0013, 0.0055)
+  sigma_s = c(-0.0483, 0.0078, 0.0010, 0.1335)
+  eta_s = 0.0451
+  lambda = c(0.6420, -0.0240)
+  Lambda = c(0.1710, 0.3980, -0.5140, -1.1470)
   h = c(0.0038, 0.0003, 0.0003, 0.0000, 0.0008, 0.0021)
 
   c(delta_pi,
@@ -88,17 +99,10 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   #   - (t(K) + t(Lambda)) %*% B(tau) - delta_r[2:3]
   # } 
   
-  # fA <- function(tau) {
-  #   p = sapply(seq(length(tau)-1), function(k) integrate(fAprime, tau[k], tau[k+1], rel.tol=.Machine$double.eps^0.18)$value)
-  #   cumsum(p)
-  # }
-  
   fA <- function(tau) {
     sapply(tau, function(tau) integrate(fAprime, 0, tau)$value)
   }
   
-  # m_ = 30
-  # a_temp = (-fA(0:m_) / 1:m_)[c(1,5,10,15,20,30)]
   a_temp = fA(c(1,5,10,15,20,30)) / c(1,5,10,15,20,30)
   a = c(-a_temp, 0, 0)
   

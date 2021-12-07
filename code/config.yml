@@ -1,0 +1,13 @@
+default:
+  dataset: "../data/data_long.Rda"
+  save_results: FALSE
+  save_path: ""
+  parameters_path: "results/Parameters.Rdata"
+  optimizer:
+    maxit: 10000
+  
+simulate:
+  dataset: "../data/simulated_data.Rdata"
+  
+compute_se:
+  parameters_path: "results/Parameters.Rdata"

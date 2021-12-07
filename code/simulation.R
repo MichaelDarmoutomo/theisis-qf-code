@@ -3,6 +3,7 @@ rm(list=ls())
 load('results/Parameters.Rdata')
 
 library(abind)
+library(expm)
 
 # Define parameters
 delta_pi = param[1:3]
@@ -78,8 +79,8 @@ for (t in 1:(T+1)) {
   y[,,t] = (-fA(c(1,5,10,15,20,30)) / c(1,5,10,15,20,30)) + (t(-fB(c(1,5,10,15,20,30))) / c(1,5,10,15,20,30)) %*% X[,,t]
 }
 
-sim_data = abind(y,
+data = abind(y,
                  array(log(Pi), c(1,100,214)),
                  array(log(S), c(1,100,214)), along=1)
 
-save(sim_data, file="results/Simulated_data.Rdata")
+save(data, file="../data/simulated_data.Rdata")

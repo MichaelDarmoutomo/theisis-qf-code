@@ -10,39 +10,38 @@ loss <- function(param, y) {
   eta_s = param[17]
   lambda = param[18:19]
   Lambda = param[20:23]
-  Lambda = matrix(lambda, 2, 2)
+  Lambda = matrix(Lambda, 2, 2, byrow=TRUE)
   h = param[24:length(param)]**2
 
   l = define_parameters(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, Lambda, h, m)
 
-  # Computes total loglikelihood given a,B,H,Q,phi,Phi and y
   res = KalmanFilter(l$a, l$B, l$H, l$Q, l$phi, l$Phi, y) 
+  
   -(LogLikelihood(res$V, res$u))
 }
 
-kalman_optimizer <- function(y) {
+kalman_optimizer <- function(y, maxit=10000) {
 
-  set.seed(123)
   init_param <- initialize_parameters()
+   
+  # opt_param = optim(
+  #   par = init_param,
+  #   fn = loss,
+  #   y = y,
+  #   hessian = TRUE,
+  #   control = list(trace=2, maxit=maxit)
+  # )
   
-  lb = rep(-Inf, length(init_param))
-  lb[1] = 0
-  lb[4] = 0
-  lb[24:length(init_param)] = 0
-
-  # Run optimization
-  opt_param = optim(
-    par = init_param,
-    fn = loss,
-    # method = "SANN",
-    # lower= lb,
-    y = y,
-    control = list(trace=1, maxit=10000)
+  opt_param = trust.optim(
+    init_param,
+    function(p) loss(p, y),
+    function(p_) maxLik::numericGradient(function(p) loss(p, data), p_),
+    # function(p_) numDeriv::grad(function(p) loss(p, data), p_),
+    control=list(maxit=maxit)
   )
-
-  # param = nlminb(init_param, loss, y=y, lower=lb,control=list(trace=1, iter.max=1000, eval.max=1000))
-  # param = nlm(loss,init_param, y=y,steptol=1e-4,gradtol=1e-4, print.level=2)
-  # param
+  
+  
+  opt_param
 }
 
 
