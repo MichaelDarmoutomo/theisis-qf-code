@@ -79,8 +79,8 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
     
     for (year in 2:T) {
       # Update assets and liabilities, and compute new coverage ratio
-      B[,,year]     = B[,,(year-1)]
-      discB[,,year] = B[,,year] * E$P[,s,year]
+      B_year        = B[,,(year-1)]
+      discB[,,year] = B_year * E$P[,s,year]
       L[year]       = sum(discB[,,year])
       A[year]       = A[year-1] * ( x[1] * (1 + E$dS_[year,s]) + (1 - x[1] - x[2]) * (1 + E$r[year,s]) ) + x[2] * CR[year-1] * L[year]
       CR[year]      = A[year] / L[year]
@@ -95,41 +95,40 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
       if (CRstrike == 5) {
         ind[year] = CR[year] - 1
         # ksi[year]  = ind[year] * L[year] / sum(sweep(sweep(B[,,year], 2, alpha * af, "*"), 1, E$P[,s,year], "*"))
-        ksi[year]  = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B[,,year]) * c(alpha*af)))
+        ksi[year]  = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * c(alpha*af)))
         v[,,year]  = ksi[year] * alpha %*% t(af)
       } else if ( CR[year] > 0.9 & CR[year] < 1.2) {
         ind[year] = (A[year] - L[year]) / (9 * A[year] + L[year])
-        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B[,,year]) * af))
+        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * af))
         v[,,year] = ksi[year] * rep(1, Tw + Tp) %*% t(af)
       } else if ( CR[year] > 1.2) {
         ind[year] = (A[year] - L[year]) / (4 * A[year] + L[year])
-        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B[,,year]) * af))
+        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * af))
         v[,,year] = ksi[year] * rep(1, Tw + Tp) %*% t(af)
       } else {
         ind[year] = CR[year] / 0.9 - 1
-        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B[,,year]) * c(alpha*af)))
+        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * c(alpha*af)))
         v[,,year] = ksi[year] * alpha %*% af
       }
       
       Ink[year] = Tw * p * E$w[year,s];
-      B[,,year] = (1 + v[,,year]) * B[,,year]
+      B_year = (1 + v[,,year]) * B_year
       
       # Nonnegativity restriction for pensions
-      B[,,year][B[,,year] < 0] = 0
-      # B[,,year] = (abs(B[,,year]) + B[,,year])/2
+      B_year = (abs(B_year) + B_year)/2
       
-      discB[,,year] = E$P[,s,year] * B[,,year]
+      discB[,,year] = E$P[,s,year] * B_year
       L[year]       = sum(discB[,,year])
       CR[year]      = A[year] / L[year]
       Uit[year]     = sum(B[1, (Tw+1):(Tw+Tp), year])
       
       A[year] = A[year] - Uit[year] + Ink[year]
-      B[1:(Tw+Tp-1), 2:(Tw+Tp), year] = B[2:(Tw+Tp), 1:(Tw+Tp-1), year]
-      B[(Tw+Tp),,year] = 0
-      B[,1,year] = 0
+      B_tmp = B_year[2:(Tw+Tp), 1:(Tw+Tp-1)]
+      B_year = matrix(0, Tw+Tp, Tw+Tp)
+      B_year[1:(Tw+Tp-1), 2:(Tw+Tp)] = B_tmp
       
       # Update outstanding payoffs with incoming wage
-      B[,,year] = B[,,year] + t(t(Q) * ((p*E$w[year,s]) / colSums(E$P2[,s,year] * Q)))
+      B[,,year] = B_year + t(t(Q) * ((p*E$w[year,s]) / colSums(E$P2[,s,year] * Q)))
       
       discB[,,year] = B[,,year] * E$P2[,s,year]
       L[year] = sum(discB[,,year])
