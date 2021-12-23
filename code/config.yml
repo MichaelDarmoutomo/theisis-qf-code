@@ -1,13 +1,25 @@
 default:
-  dataset: "../data/data_long.Rda"
+  dataset: "../data/data.Rda"
   save_results: FALSE
   save_path: ""
   parameters_path: "results/Parameters.Rdata"
   optimizer:
-    maxit: 10000
+    maxit: 50000
   
 simulate:
   dataset: "../data/simulated_data.Rdata"
   
 compute_se:
   parameters_path: "results/Parameters.Rdata"
+
+pension_fund:
+  parameters_path: "results/Parameters.Rdata"
+  load_economy: TRUE
+  save_economy: FALSE
+  save_path: "../data/simulated_economy.Rdata"
+  dt: 1
+  T: 600
+  w: 25000
+  nSim: 1000
+  parallel: TRUE
+  maturities: !expr 0:65

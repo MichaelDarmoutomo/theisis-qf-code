@@ -4,9 +4,12 @@
 
 rm(list=ls())
 
-if (!('code' %in% getwd())) {
-  setwd("C:/Users/Michael.DESKTOP-575L4M7/OneDrive - Erasmus University Rotterdam/Documents/thesis-qf/code")
+if (Sys.info()['sysname'] != 'Linux') {
+  if (!('code' %in% getwd())) {
+    setwd("C:/Users/Michael.DESKTOP-575L4M7/OneDrive - Erasmus University Rotterdam/Documents/thesis-qf/code")
+  }
 }
+
 
 source('optimizer.R')
 source('kalman.R')
@@ -40,14 +43,20 @@ config_mode = attributes(config)$config
 
 load(config$dataset)
 
-# # Get subset of data that is available
-# data = DT[410:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
-# data$HICP = log(data$HICP)
-# data$MSCI = log(data$MSCI)
-# data[,1:6] = data[,1:6]/100
 
-
-if (config_mode != "simulate") {
+if (config$dataset == "../data/data.Rda") {
+  # # Get subset of data that is available
+  data = DT[410:622, c('X1', 'X5', 'X10', 'X15', 'X20', 'X30', 'HICP', 'MSCI')]
+  data$HICP = log(data$HICP)
+  data$MSCI = log(data$MSCI)
+  data[,1:6] = data[,1:6]/100
+  
+  data = t(as.matrix(data))
+  row.names(data) <- NULL
+  
+  data[7,] = data[7,] - data[7,1]
+  data[8,] = data[8,] - data[8,1]  
+} else if (config_mode != "simulate") {
   data = data[325:579, 2:9]
   
   data = t(as.matrix(data))
@@ -56,6 +65,7 @@ if (config_mode != "simulate") {
   # Shift so that HICP and MSCI start with zeros
   data[7,] = data[7,] - data[7,1]
   data[8,] = data[8,] - data[8,1]
+  
 }
 
 #########################
