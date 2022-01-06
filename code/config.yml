@@ -1,5 +1,5 @@
 default:
-  dataset: "../data/data.Rda"
+  dataset: "../data/data_long.Rda"
   save_results: FALSE
   save_path: ""
   parameters_path: "results/Parameters.Rdata"

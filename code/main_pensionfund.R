@@ -1,5 +1,5 @@
 library(config)
-
+rm(list=ls())
 Sys.setenv(R_CONFIG_ACTIVE = "pension_fund")
 config <- config::get()
 
@@ -17,7 +17,7 @@ if (config$load_economy) {
     dt = config$dt, 
     T = config$T, 
     nSim = config$nSim, 
-    w = config$w,
+    w = config$w, 
     maturities = config$maturities,
     parallel = config$parallel,
     save_economy = config$save_economy,
@@ -25,8 +25,15 @@ if (config$load_economy) {
 }
 
 x = c(0.4740, 0.7363)
+# x = c(0.4740, 0)
 start_time = Sys.time()
 print(paste("Starting at",start_time))
-cec = pension_fund(x, e, config$nSim)
+
+cec = optim(x, function(z) pension_fund(z,e,config$nSim), 
+            control=list(
+              fnscale=-1,
+              trace=1
+            ))
+
 print(paste("Stopping at",Sys.time()))
 print(paste("Total runtime ", Sys.time() - start_time))

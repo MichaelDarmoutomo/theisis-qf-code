@@ -88,7 +88,9 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   Q = U %*% V %*% t(U)
   
   fB <- function(tau) {
-    sapply(tau, function(tau) if (tau==0) 0 else solve(t(K + Lambda)) %*% (expm(-tau * (t(K) + t(Lambda))) - diag(2)) %*% delta_r[2:3])
+    M = t(K + Lambda)
+    Minv = solve(M)
+    sapply(tau, function(tau) if (tau==0) 0 else Minv %*% (expm(-tau * M) - diag(2)) %*% delta_r[2:3])
   }
   
   fAprime <- function(tau) {
@@ -100,7 +102,10 @@ define_parameters <- function(delta_pi,delta_r,K,sigma_pi,sigma_s,eta_s,lambda, 
   # } 
   
   fA <- function(tau) {
-    sapply(tau, function(tau) integrate(fAprime, 0, tau)$value)
+    # sapply(tau, function(tau) integrate(fAprime, 0, tau)$value)
+    tau = c(0, tau)
+    p = sapply(seq(length(tau)-1), function(k) integrate(fAprime, tau[k], tau[k+1], abs.tol=0.01)$value)
+    cumsum(p)
   }
   
   a_temp = fA(c(1,5,10,15,20,30)) / c(1,5,10,15,20,30)

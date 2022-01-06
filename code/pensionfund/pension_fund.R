@@ -12,6 +12,10 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
   #'
   #' @examples
   
+  # library(foreach)
+  library(parallel)
+  # library(doSNOW)
+  
   Tw = 40
   Tp = 25
   
@@ -45,9 +49,7 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
   afag        = matrix(0, 1, Tw+Tp)
   
   alpha = matrix(1, Tw+Tp, 1)
-  for (i in 1:9) {
-    alpha[i] = 1/10
-  }
+  alpha[1:9] = seq(0.1,0.9,0.1)
   
   af = adjustment_factor(Tw, Tp, afx)
   af = if(afx==4) af(beta) else af()
@@ -64,10 +66,12 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
     
   B[,,2] = B[,,1]
   
-  for (s in 1:nSim) {
-    print(paste0("Running simulation: ", s,"/",nSim))
-    discB[,,1] = E$P[,s,1] %*% B[,,1]
-    discB[,,2] = E$P[,s,2] %*% B[,,2]
+  # U <- foreach(s=1:nSim, .combine=cbind, .inorder=FALSE) %dopar% {
+  # for (s in 1:nSim) {
+    # print(paste0("Running simulation: ", s,"/",nSim))
+  wrapper <- function(s) {
+    discB[,,1] = B[,,1] * E$P[,s,1]
+    discB[,,2] = B[,,2] * E$P[,s,2]
     
     # TODO: build adjustment factor for adjust.. achievable pension..  
     if (afx == 3) {
@@ -95,33 +99,33 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
       if (CRstrike == 5) {
         ind[year] = CR[year] - 1
         # ksi[year]  = ind[year] * L[year] / sum(sweep(sweep(B[,,year], 2, alpha * af, "*"), 1, E$P[,s,year], "*"))
-        ksi[year]  = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * c(alpha*af)))
+        ksi[year]  = ind[year] * L[year] / sum(t(t(B_year) * c(alpha*af)) * E$P[,s,year])
         v[,,year]  = ksi[year] * alpha %*% t(af)
       } else if ( CR[year] > 0.9 & CR[year] < 1.2) {
         ind[year] = (A[year] - L[year]) / (9 * A[year] + L[year])
-        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * af))
+        ksi[year] = ind[year] * L[year] / sum(t(t(B_year) * af) * E$P[,s,year])
         v[,,year] = ksi[year] * rep(1, Tw + Tp) %*% t(af)
       } else if ( CR[year] > 1.2) {
         ind[year] = (A[year] - L[year]) / (4 * A[year] + L[year])
-        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * af))
+        ksi[year] = ind[year] * L[year] / sum(t(t(B_year) * af) * E$P[,s,year])
         v[,,year] = ksi[year] * rep(1, Tw + Tp) %*% t(af)
       } else {
         ind[year] = CR[year] / 0.9 - 1
-        ksi[year] = ind[year] * L[year] / sum(E$P[,s,year] * t(t(B_year) * c(alpha*af)))
+        ksi[year] = ind[year] * L[year] / sum(t(t(B_year) * c(alpha*af)) * E$P[,s,year])
         v[,,year] = ksi[year] * alpha %*% af
       }
       
-      Ink[year] = Tw * p * E$w[year,s];
+      Ink[year] = Tw * p * E$w[year,s]
       B_year = (1 + v[,,year]) * B_year
       
       # Nonnegativity restriction for pensions
       B_year = (abs(B_year) + B_year)/2
       
-      discB[,,year] = E$P[,s,year] * B_year
+      discB[,,year] = B_year * E$P[,s,year]
       L[year]       = sum(discB[,,year])
       CR[year]      = A[year] / L[year]
-      Uit[year]     = sum(B[1, (Tw+1):(Tw+Tp), year])
-      
+      Uit[year]     = sum(B_year[1, (Tw+1):(Tw+Tp)])
+
       A[year] = A[year] - Uit[year] + Ink[year]
       B_tmp = B_year[2:(Tw+Tp), 1:(Tw+Tp-1)]
       B_year = matrix(0, Tw+Tp, Tw+Tp)
@@ -141,18 +145,34 @@ pension_fund <- function(x, E, nSim, T=600, afx=1, gamma=5, p=0.2) {
       
     } # end time loop
     
+    U_ = rep(0, T-Tp+1)
     # Compute utility
     rho_ = 1 / (mean(E$r[,s]) + 1)
     for (j in (-Tw:(T-Tw-Tp))) {
       U[j+Tw+1,s] = 0
       for (t in (j+Tw+1):(j+Tw+Tp)) {
-        U[j+Tw+1, s] = U[j+Tw+1, s] + rho_^(t-j-Tw-1) * u(B[1,t-j,t] / E$Pi[t,s])
+        # U_[j+Tw+1, s] = U[j+Tw+1, s] + rho_^(t-j-Tw-1) * u(B[1,t-j,t] / E$Pi[t,s])
+        U_[j+Tw+1] = U[j+Tw+1, s] + rho_^(t-j-Tw-1) * u(B[1,t-j,t] / E$Pi[t,s])
       }
     }
+    # U[,i] = U_
+    U_
+    
   } # end simulation loop
   
+  # Create clusters
+  numCores <- detectCores()
+  ncores <- 4
+  print(paste("Running pension_fund() parallel on", ncores, "cores..."))
+  clust <- makeCluster(ncores)
+  on.exit(stopCluster(clust))
+
+  parallel::clusterExport(clust, varlist=c("x", "E", "T", "afx", "gamma", "p"), envir=environment())
+  U = parSapply(clust, 1:nSim, wrapper)
+
   welfare = rowSums(U)
+  plot.ts(welfare[100:length(welfare)])
   SW = sum(rho^(100:length(welfare)) * welfare[100:length(welfare)])
-  CEC = -((SW*(1-rho)^2 * (1-gamma)) / ((1-rho^Tp)*rho^101))^((1-gamma)^(-1))
+  CEC = ((SW*(1-rho)^2 * (1-gamma)) / ((1-rho^Tp)*rho^101))^((1-gamma)^(-1))
   
 }

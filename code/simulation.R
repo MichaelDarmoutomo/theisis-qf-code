@@ -13,6 +13,16 @@ simulate_economy <- function(paramfile, dt, T, nSim, w_0, maturities, savepath=F
   # lambda = c(0.6420, -0.0240)
   # Lambda = c(0.1710, 0.3980, -0.5140, -1.1470)
   # h = c(0.0038, 0.0003, 0.0003, 0.0000, 0.0008, 0.0021)
+  
+  # delta_pi = c(0.02, -0.0063, 0.0014)
+  # delta_r = c(0.024, -0.0148, 0.0053)
+  # K = c(0.08, -0.19, 0.35)
+  # sigma_pi = c(0.0002, -0.0001, 0.0061)
+  # sigma_s = c(-0.0053, -0.0076, -0.0211, 0.1659)
+  # eta_s = 0.0452
+  # lambda = c(0.123, -0.012)
+  # Lambda = c(0.149, -0.381, 0.089, -0.083)
+  # h = c(0.0038, 0.0003, 0.0003, 0.0000, 0.0008, 0.0021)
   # 
   # param=c(delta_pi,
   #   delta_r,
@@ -20,7 +30,7 @@ simulate_economy <- function(paramfile, dt, T, nSim, w_0, maturities, savepath=F
   #   sigma_pi,
   #   sigma_s,
   #   eta_s,
-  #   lambda, 
+  #   lambda,
   #   Lambda,
   #   h)
   
@@ -28,7 +38,7 @@ simulate_economy <- function(paramfile, dt, T, nSim, w_0, maturities, savepath=F
   delta_pi = param[1:3]
   delta_r = param[4:6]
   K = param[7:9]
-  K = matrix(c(K[1],K[2],0,K[3]), 2, 2)
+  K = matrix(c(-K[1],K[2],0,K[3]), 2, 2)
   sigma_pi = c(param[10:12], 0)
   sigma_s = param[13:16]
   eta_s = param[17]
@@ -109,16 +119,15 @@ simulate_economy <- function(paramfile, dt, T, nSim, w_0, maturities, savepath=F
     library(parallel)
     # maturities_ = maturities[maturities==0] = 1
     
-    numCores <- detectCores()
-    clust <- makeCluster(numCores-6)
-    print(maturities)
+    numCores <- parallel::detectCores()
+    clust <- parallel::makeCluster(numCores-6)
     yield_wrapper = function(t) {
       # exp((fA(maturities) / maturities_) + (t(fB(maturities)) / maturities_) %*% X[,,t])
       exp((fA(maturities)) + (t(fB(maturities))) %*% X[,,t])
     }
-    clusterExport(clust, varlist=c("X", "expm", "fA"), envir=environment())
+    parallel::clusterExport(clust, varlist=c("X", "expm", "fA"), envir=environment())
     
-    on.exit(stopCluster(clust))
+    on.exit(parallel::stopCluster(clust))
     
     print(paste("Starting at",Sys.time()))
     y = parLapply(clust, 1:T, yield_wrapper)

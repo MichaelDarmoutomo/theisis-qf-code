@@ -17,7 +17,7 @@ loss <- function(param, y) {
 
   res = KalmanFilter(l$a, l$B, l$H, l$Q, l$phi, l$Phi, y) 
   
-  -(LogLikelihood(res$V, res$u))
+  (LogLikelihood(res$V, res$u))
 }
 
 kalman_optimizer <- function(y, maxit=10000) {
@@ -37,7 +37,14 @@ kalman_optimizer <- function(y, maxit=10000) {
     function(p) loss(p, y),
     function(p_) maxLik::numericGradient(function(p) loss(p, data), p_),
     # function(p_) numDeriv::grad(function(p) loss(p, data), p_),
-    control=list(maxit=maxit)
+    control=list(
+      maxit=maxit,
+      prec=5,
+      function.scale.factor=-1,
+      contract.factor=0.25,
+      expand.factor=10,
+      start.trust.radius=1
+      )
   )
   
   
